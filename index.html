@@ -1,0 +1,648 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Click to Unwrap</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+  href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Great+Vibes&display=swap"
+  rel="stylesheet">
+  <style>
+    :root{
+      --bg1:#0b1020;
+      --bg2:#0f1a36;
+      --card:#101a33;
+      --paper1:#b3122d;
+      --paper2:#7a0f1f; /* deep Christmas red */
+      --ribbon:#f2d36b;
+      --shadow: rgba(0,0,0,.35);
+      --glow: rgba(255,255,255,.12);
+      --text:#eaf0ff;
+      --muted: rgba(234,240,255,.75);
+    }
+
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      color: var(--text);
+      background: radial-gradient(1200px 800px at 50% 30%, rgba(255,255,255,.08), transparent 60%),
+                  linear-gradient(160deg, var(--bg1), var(--bg2));
+      display:grid;
+      place-items:center;
+      overflow:hidden;
+    }
+
+    .app{
+      width:min(920px, 92vw);
+      padding: 28px 18px;
+      display:grid;
+      gap: 16px;
+      justify-items:center;
+    }
+
+    .title{
+      text-align:center;
+      line-height:1.1;
+      margin:0;
+      font-weight:800;
+      letter-spacing:.5px;
+      font-size: clamp(18px, 2.5vw, 28px);
+      color: rgba(234,240,255,.92);
+      text-shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+
+    .hint{
+      margin:0;
+      text-align:center;
+      max-width: 60ch;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    /* --- Stage --- */
+    .stage{
+      position: relative;
+      width: min(520px, 86vw);
+      aspect-ratio: 4 / 3;
+      display:grid;
+      place-items:center;
+      user-select:none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .pedestal{
+      position:absolute;
+      inset:auto 8% 6% 8%;
+      height: 18%;
+      background: radial-gradient(60% 90% at 50% 40%, rgba(255,255,255,.10), transparent 60%),
+                  linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+      border-radius: 999px;
+      filter: blur(.2px);
+      transform: skewX(-8deg);
+      opacity: .9;
+    }
+
+    /* --- Book present wrapper (a book-shaped gift) --- */
+    .gift-wrap{
+      position: relative;
+      width: 72%;
+      aspect-ratio: 3 / 4; /* book-ish */
+      display:grid;
+      place-items:center;
+      cursor:pointer;
+      transform: translateY(-8px);
+    }
+
+    .gift-wrap:focus-visible{
+      outline: 3px solid rgba(242,211,107,.7);
+      outline-offset: 6px;
+      border-radius: 18px;
+    }
+
+    .gift{
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border-radius: 16px;
+      background:
+        radial-gradient(120% 80% at 50% 20%, rgba(255,255,255,.15), transparent 55%),
+        repeating-linear-gradient(
+          45deg,
+          var(--paper1) 0 14px,
+          #1e7f43 14px 28px
+        ); /* red & green candy-stripe wrap */
+      box-shadow:
+        0 40px 70px var(--shadow),
+        0 10px 24px rgba(0,0,0,.25);
+      overflow:hidden;
+      transform-style: preserve-3d;
+    }
+
+    /* subtle “page edge” illusion on the right */
+    .gift::after{
+      content:"";
+      position:absolute;
+      top:10px;
+      right:-1px;
+      width: 10px;
+      height: calc(100% - 20px);
+      background: linear-gradient(180deg, rgba(255,255,255,.35), rgba(255,255,255,.12));
+      border-radius: 10px;
+      opacity: .55;
+      filter: blur(.3px);
+    }
+
+    /* ribbon vertical */
+    .ribbon-v{
+      position:absolute;
+      left: 50%;
+      top: -10%;
+      width: 16%;
+      height: 120%;
+      transform: translateX(-50%);
+      background: linear-gradient(90deg, rgba(0,0,0,.08), rgba(255,255,255,.10), rgba(0,0,0,.10));
+      background-color: var(--ribbon);
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.10);
+    }
+
+    /* ribbon horizontal */
+    .ribbon-h{
+      position:absolute;
+      left: -10%;
+      top: 50%;
+      width: 120%;
+      height: 16%;
+      transform: translateY(-50%);
+      background: linear-gradient(180deg, rgba(0,0,0,.10), rgba(255,255,255,.10), rgba(0,0,0,.12));
+      background-color: var(--ribbon);
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.10);
+    }
+
+    /* bow */
+    .bow{
+      position:absolute;
+      left:50%;
+      top: 14%;
+      transform: translateX(-50%);
+      width: 42%;
+      height: 22%;
+      pointer-events:none;
+    }
+    .bow::before,
+    .bow::after{
+      content:"";
+      position:absolute;
+      top: 18%;
+      width: 48%;
+      height: 64%;
+      background: radial-gradient(70% 70% at 30% 35%, rgba(255,255,255,.22), transparent 55%),
+                  linear-gradient(180deg, rgba(0,0,0,.10), rgba(255,255,255,.10));
+      background-color: var(--ribbon);
+      border-radius: 999px;
+      box-shadow: 0 10px 18px rgba(0,0,0,.15);
+    }
+    .bow::before{ left: 0; transform: rotate(-18deg); }
+    .bow::after{ right: 0; transform: rotate(18deg); }
+    .knot{
+      position:absolute;
+      left:50%;
+      top: 34%;
+      width: 18%;
+      height: 36%;
+      transform: translateX(-50%);
+      background: linear-gradient(180deg, rgba(255,255,255,.18), rgba(0,0,0,.10));
+      background-color: var(--ribbon);
+      border-radius: 10px;
+      box-shadow: 0 10px 14px rgba(0,0,0,.14);
+    }
+
+    /* “CLICK TO UNWRAP” label */
+    .cta{
+      position:absolute;
+      left:50%;
+      bottom: 8%;
+      transform: translateX(-50%);
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(0,0,0,.30);
+      border: 1px solid rgba(255,255,255,.14);
+      box-shadow: 0 16px 40px rgba(0,0,0,.28);
+      backdrop-filter: blur(6px);
+      font-weight: 800;
+      letter-spacing: 1.4px;
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+
+    .cta .spark{
+      display:inline-block;
+      margin-left: 8px;
+      opacity:.95;
+      animation: pulse 1.35s ease-in-out infinite;
+    }
+
+    @keyframes pulse{
+      0%,100%{ transform: translateY(0); opacity:.85; }
+      50%{ transform: translateY(-2px); opacity:1; }
+    }
+
+    /* --- Note revealed after unwrapping --- */
+    .note{
+  position: absolute;
+  left: 50%;
+  bottom: 8%;
+  transform: translateX(-50%) translateY(14px) scale(.98);
+  width: min(580px, 92vw);
+  padding: 18px 22px;
+  border-radius: 22px;
+
+  /* festive wrapping colours */
+  background:
+    radial-gradient(120% 80% at 50% 20%, rgba(255,255,255,.22), transparent 60%),
+    repeating-linear-gradient(
+      45deg,
+      var(--paper1) 0 14px,
+      #1e7f43 14px 28px
+    );
+
+  border: 2px solid rgba(255,255,255,.4);
+  box-shadow:
+    0 26px 70px rgba(0,0,0,.38),
+    inset 0 0 0 2px rgba(255,255,255,.18);
+
+  text-align: center;
+
+  /* ✨ festive typography */
+  font-family: 'Playfair Display', serif;
+  font-weight: 900;
+  font-size: clamp(18px, 3vw, 22px);
+  letter-spacing: .6px;
+  line-height: 1.3;
+  color: #fff6df;
+
+  /* gold-foil shimmer */
+  background-clip: padding-box;
+  text-shadow:
+    0 2px 0 rgba(0,0,0,.25),
+    0 10px 28px rgba(0,0,0,.35);
+
+  opacity: 0;
+  pointer-events: none;
+}
+
+
+.note small{
+  display: block;
+  margin-top: 10px;
+
+  font-family: 'Great Vibes', cursive;
+  font-size: 1.6em;
+  font-weight: 400;
+  letter-spacing: .8px;
+
+  color: #ffe9b5;
+  text-shadow:
+    0 1px 0 rgba(0,0,0,.25),
+    0 8px 20px rgba(0,0,0,.35);
+
+  opacity: 0;
+}
+
+
+.stage.unwrapped .note{
+  animation: noteIn 1400ms 900ms cubic-bezier(.2,.9,.2,1) forwards;
+}
+
+.stage.unwrapped .note small{
+  animation: signatureIn 1200ms 1700ms ease forwards;
+}
+
+@keyframes noteIn{
+  0%{
+    opacity: 0;
+    transform: translateX(-50%) translateY(18px) scale(.96);
+  }
+  100%{
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+
+@keyframes signatureIn{
+  from{
+    opacity: 0;
+    transform: translateY(6px) rotate(-2deg);
+  }
+  to{
+    opacity: 1;
+    transform: translateY(0) rotate(0);
+  }
+}
+
+
+    /* --- Book cover underneath --- */
+    .book{
+      position:absolute;
+      width: 72%;
+      aspect-ratio: 3 / 4;
+      border-radius: 16px;
+      overflow:hidden;
+      box-shadow:
+        0 40px 70px var(--shadow),
+        0 10px 24px rgba(0,0,0,.25);
+      opacity: 0;
+      transform: translateY(10px) scale(.98);
+      pointer-events:none;
+    }
+
+    .book img{
+      width:100%;
+      height:100%;
+      object-fit: cover;
+      display:block;
+      background: #0a0f1f;
+    }
+
+    .book .fallback{
+      position:absolute;
+      inset:0;
+      display:grid;
+      place-items:center;
+      padding: 20px;
+      text-align:center;
+      background:
+        radial-gradient(120% 80% at 50% 20%, rgba(255,255,255,.10), transparent 60%),
+        linear-gradient(135deg, #17234a, #0f1733);
+      color: rgba(234,240,255,.92);
+      font-weight: 700;
+      letter-spacing:.2px;
+    }
+
+    .book .fallback small{
+      display:block;
+      margin-top: 10px;
+      color: rgba(234,240,255,.72);
+      font-weight: 500;
+      letter-spacing:0;
+      line-height:1.35;
+    }
+
+    /* --- Snow overlay --- */
+    .snow{
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 50;
+    }
+
+    .snowflake{
+      position: absolute;
+      top: -12vh;
+      left: 0;
+      width: var(--size);
+      height: var(--size);
+      opacity: var(--opacity);
+      filter: blur(var(--blur));
+      transform: translateX(var(--x)) translateY(-10vh);
+      will-change: transform;
+    }
+
+    .snowflake::before{
+      content: "❄";
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      font-size: var(--size);
+      line-height: 1;
+      color: rgba(255,255,255,.95);
+      text-shadow: 0 10px 25px rgba(0,0,0,.25);
+    }
+
+    @keyframes snowFall{
+      0%   { transform: translateX(var(--x)) translateY(-12vh) rotate(0deg); }
+      100% { transform: translateX(calc(var(--x) + var(--drift))) translateY(112vh) rotate(var(--spin)); }
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      .snow{ display:none; }
+    }
+
+    /* --- Unwrap animation --- */
+    .stage.unwrapped .gift-wrap{ cursor: default; }
+
+    .stage.unwrapped .cta{ opacity: 0; transform: translateX(-50%) translateY(6px); transition: .35s ease; }
+
+    .stage.unwrapped .ribbon-v{
+      animation: ribbonV 2800ms cubic-bezier(.2,.9,.2,1) forwards;
+    }
+    .stage.unwrapped .ribbon-h{
+      animation: ribbonH 2800ms cubic-bezier(.2,.9,.2,1) forwards;
+    }
+    .stage.unwrapped .bow{
+      animation: bowPop 2600ms cubic-bezier(.2,.9,.2,1) forwards;
+    }
+
+    /* paper “peels” away as 4 flaps */
+    .flap{
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      transform-style: preserve-3d;
+    }
+
+    .flap::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:
+        radial-gradient(120% 80% at 50% 20%, rgba(255,255,255,.15), transparent 55%),
+        repeating-linear-gradient(
+          45deg,
+          var(--paper1) 0 14px,
+          #1e7f43 14px 28px
+        ); /* red & green candy-stripe wrap */
+      border-radius: 16px;
+    }
+
+    .flap.top{ clip-path: polygon(0 0, 100% 0, 100% 48%, 0 48%); transform-origin: 50% 0%; }
+    .flap.bottom{ clip-path: polygon(0 52%, 100% 52%, 100% 100%, 0 100%); transform-origin: 50% 100%; }
+    .flap.left{ clip-path: polygon(0 0, 50% 0, 50% 100%, 0 100%); transform-origin: 0% 50%; }
+    .flap.right{ clip-path: polygon(50% 0, 100% 0, 100% 100%, 50% 100%); transform-origin: 100% 50%; }
+
+    /* initially flaps are invisible overlays; we only show them during unwrap for a cleaner illusion */
+    .flaps{ position:absolute; inset:0; opacity:0; }
+
+    .stage.unwrapped .flaps{ opacity:1; }
+    .stage.unwrapped .gift{ background: transparent; box-shadow:none; }
+
+    .stage.unwrapped .flap.top{ animation: peelTop 3200ms cubic-bezier(.2,.9,.2,1) forwards; }
+    .stage.unwrapped .flap.bottom{ animation: peelBottom 3200ms cubic-bezier(.2,.9,.2,1) forwards; }
+    .stage.unwrapped .flap.left{ animation: peelLeft 3200ms cubic-bezier(.2,.9,.2,1) forwards; }
+    .stage.unwrapped .flap.right{ animation: peelRight 3200ms cubic-bezier(.2,.9,.2,1) forwards; }
+
+    .stage.unwrapped .book{
+      animation: revealBook 2200ms 650ms cubic-bezier(.2,.9,.2,1) forwards;
+    }
+
+    @keyframes ribbonV{
+      to{ transform: translateX(-50%) translateY(-140%) rotate(-18deg); opacity:0; }
+    }
+    @keyframes ribbonH{
+      to{ transform: translateY(-50%) translateX(140%) rotate(18deg); opacity:0; }
+    }
+    @keyframes bowPop{
+      40%{ transform: translateX(-50%) translateY(-10px) scale(1.05) rotate(-3deg); }
+      to{ transform: translateX(-50%) translateY(-120px) scale(.9) rotate(-14deg); opacity:0; }
+    }
+
+    @keyframes peelTop{
+      to{ transform: rotateX(88deg) translateY(-6px); opacity:0; }
+    }
+    @keyframes peelBottom{
+      to{ transform: rotateX(-88deg) translateY(6px); opacity:0; }
+    }
+    @keyframes peelLeft{
+      to{ transform: rotateY(-88deg) translateX(-6px); opacity:0; }
+    }
+    @keyframes peelRight{
+      to{ transform: rotateY(88deg) translateX(6px); opacity:0; }
+    }
+
+    @keyframes revealBook{
+      to{ opacity:1; transform: translateY(0) scale(1); }
+    }
+
+    /* reduced motion */
+    @media (prefers-reduced-motion: reduce){
+      .cta .spark{ animation:none; }
+      .stage.unwrapped .ribbon-v,
+      .stage.unwrapped .ribbon-h,
+      .stage.unwrapped .bow,
+      .stage.unwrapped .flap,
+      .stage.unwrapped .book{ animation: none !important; }
+      .stage.unwrapped .book{ opacity:1; transform:none; }
+      .stage.unwrapped .ribbon-v,
+      .stage.unwrapped .ribbon-h,
+      .stage.unwrapped .bow{ opacity:0; }
+      .stage.unwrapped .flaps{ opacity:0; }
+      .stage.unwrapped .cta{ opacity:0; }
+    }
+
+    /* footer instructions */
+    .footer{
+      margin-top: 6px;
+      padding: 12px 14px;
+      max-width: 70ch;
+      border-radius: 16px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.10);
+      box-shadow: 0 18px 50px rgba(0,0,0,.22);
+      color: rgba(234,240,255,.78);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    code{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: .95em;
+      background: rgba(0,0,0,.25);
+      padding: 2px 6px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,.10);
+    }
+  </style>
+</head>
+<body>
+  <div class="snow" id="snow" aria-hidden="true"></div>
+  <main class="app">
+    <h1 class="title">A Little Surprise</h1>
+
+    <section class="stage" id="stage" aria-label="Unwrap the present">
+      <div class="pedestal" aria-hidden="true"></div>
+
+      <!-- Book cover revealed underneath -->
+      <div class="book" id="book" aria-hidden="true">
+        <img id="bookImg" src="assets/lcbook.jpg" alt="Book cover" />
+      </div>
+
+      <!-- Wrapped present (book-shaped) -->
+      <div class="gift-wrap" id="gift" role="button" tabindex="0" aria-label="Click to unwrap">
+        <div class="gift" aria-hidden="true">
+          <div class="ribbon-v"></div>
+          <div class="ribbon-h"></div>
+          <div class="bow">
+            <div class="knot"></div>
+          </div>
+          <div class="cta">CLICK TO UNWRAP <span class="spark">✦</span></div>
+
+          <!-- flaps only show during unwrap to simulate paper peeling away -->
+          <div class="flaps" aria-hidden="true">
+            <div class="flap top"></div>
+            <div class="flap bottom"></div>
+            <div class="flap left"></div>
+            <div class="flap right"></div>
+          </div>
+        </div>
+      </div>
+    
+      <div class="note" id="note" aria-hidden="true">
+        Merry Christmas Jenn — Have a lovely festive break.
+        <small>Love from Secret Santa</small>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    (function(){
+      const stage = document.getElementById('stage');
+      const snow = document.getElementById('snow');
+      const gift = document.getElementById('gift');
+      const img = document.getElementById('bookImg');
+      const fallback = document.getElementById('fallback');
+
+      // Show a helpful fallback if the cover image isn't present.
+      img.addEventListener('error', () => {
+        fallback.hidden = false;
+      }, { once: true });
+
+      function unwrap(){
+        if (stage.classList.contains('unwrapped')) return;
+        stage.classList.add('unwrapped');
+        gift.setAttribute('aria-disabled', 'true');
+        gift.tabIndex = -1;
+      }
+
+      gift.addEventListener('click', unwrap);
+      gift.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          unwrap();
+        }
+      });
+
+      // --- Falling snow overlay ---
+      // Creates lightweight DOM snowflakes with randomized size, drift, duration and delay.
+      // (No canvas, so it works everywhere and stays easy to tweak.)
+      const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (!reduceMotion && snow) {
+        const COUNT = 42; // tweak for more/less snow
+        for (let i = 0; i < COUNT; i++) {
+          const flake = document.createElement('div');
+          flake.className = 'snowflake';
+
+          const size = rand(10, 22); // px
+          const x = rand(0, 100); // vw
+          const drift = rand(-18, 18); // vw
+          const duration = rand(7.5, 14.5); // s
+          const delay = rand(-14, 0); // s (negative = already falling)
+          const opacity = rand(0.28, 0.9);
+          const blur = rand(0, 1.2);
+          const spin = rand(-540, 540); // deg
+
+          flake.style.setProperty('--size', size + 'px');
+          flake.style.setProperty('--x', x + 'vw');
+          flake.style.setProperty('--drift', drift + 'vw');
+          flake.style.setProperty('--opacity', opacity.toFixed(2));
+          flake.style.setProperty('--blur', blur.toFixed(2) + 'px');
+          flake.style.setProperty('--spin', spin + 'deg');
+
+          flake.style.animation = `snowFall ${duration}s linear ${delay}s infinite`;
+          snow.appendChild(flake);
+        }
+      }
+
+      function rand(min, max){
+        return Math.random() * (max - min) + min;
+      }
+    })();
+  </script>
+</body>
+</html>
+
